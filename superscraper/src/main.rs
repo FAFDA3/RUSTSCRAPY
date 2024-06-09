@@ -7,7 +7,7 @@ use std::fs;
 use std::path::Path;
 use flate2::read::GzDecoder;
 use std::io::Read;
-
+use regex:: Regex;
 
 
 fn create_airbnb_url(latitude1: f64, latitude2: f64, longitude1: f64, longitude2: f64) -> String {
@@ -57,6 +57,14 @@ async fn fetch_html(url: &str) -> Result<String, Error> {
     Ok(s)
 }
 
+
+fn extract_json (html: &str)->Option<String>{
+    let re = Regex::new(r#"data-deferred-state-0="true" type="application/json">([^<]+)</script></body></html>"#).unwrap();
+    re.captures(html).and_then(|cap| cap.get(1)).map(|m| m.as_str().to_string())
+
+
+
+}
 
 fn save_html(content: &str, folder: &str, filename: &str) -> std::io::Result<()> {
     let path = Path::new(folder);
@@ -117,15 +125,26 @@ async fn run_scraper(lat1: f64, lat2: f64, long1: f64, long2: f64) {
               
 
 
+                if let Some(json_content) = extract_json(&html){
+                    if let Err(e) = save_html(&json_content, "HTML", "extracted_data.json"){
+                        eprintln!("Error saving JSON: {}", e);
+                        }else{
+                            println!("JSON saved successfully.");
+                        }
+                }else {
+                    println!("No JSON content found.");
+                }
 
-                let contextual_content = extract_contextual_content(&html);
+
+
+                /*let contextual_content = extract_contextual_content(&html);
 
                 println!("this is the contextual {}", contextual_content);
                 if let Err(e) = save_html(&contextual_content, "HTML", "contextual_content.html") {
                     eprintln!("Error saving HTML: {}", e);
                 } else {
                     println!("HTML saved successfully.");
-                }
+                }*/
             }
             Err(e) => eprintln!("Error fetching HTML: {}", e),
         }
