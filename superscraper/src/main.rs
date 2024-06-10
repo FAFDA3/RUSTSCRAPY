@@ -8,7 +8,7 @@ use std::path::Path;
 use flate2::read::GzDecoder;
 use std::io::Read;
 use regex:: Regex;
-
+use serde_json::{Value, Result as Resultserde};
 
 fn create_airbnb_url(latitude1: f64, latitude2: f64, longitude1: f64, longitude2: f64) -> String {
     format!("https://it.airbnb.com/s/homes?refinement_paths%5B%5D=%2Fhomes&place_id=ChIJu46S-ZZhLxMROG5lkwZ3D7k&checkin=2024-07-19&checkout=2024-07-31&adults=1&tab_id=home_tab&query=Rome%2C+Italie&flexible_trip_lengths%5B%5D=one_week&monthly_start_date=2024-07-01&monthly_length=3&monthly_end_date=2024-10-01&search_mode=regular_search&price_filter_input_type=0&price_filter_num_nights=12&channel=EXPLORE&ne_lat={}&ne_lng={}&sw_lat={}&sw_lng={}&zoom=12.930721908719006&zoom_level=12.930721908719006&search_by_map=true&search_type=user_map_move", latitude1, longitude1, latitude2, longitude2)
@@ -100,6 +100,14 @@ fn extract_data(html: &str) -> String {
     }
 }*/
 
+fn use_json(path: &str) -> Result<Value, Box<dyn std::error::Error>> {
+    let json_str = fs::read_to_string(path)?;
+    let parsed_json: Value = serde_json::from_str(&json_str)?;
+    Ok(parsed_json)
+}
+
+
+
 
 async fn run_scraper(lat1: f64, lat2: f64, long1: f64, long2: f64) {
     loop {
@@ -173,6 +181,21 @@ fn main() {
     let long1: f64 = 12.5242224779;
     let long2: f64 = 12.412739371;*/
 
+    match use_json("HTML/extracted_data.json"){
+
+        Ok(parsed_json)=>{
+            println!("Parsed JSON: \n{}", serde_json::to_string_pretty(&parsed_json).unwrap());
+        }
+        Err(e)=>{
+            println!("there is an error {}", e);
+
+
+        }
+
+
+
+    }
+    // mydata : Resultserde<()> = use_json("HTML/extracted_data.json");
 
 
 
