@@ -164,7 +164,7 @@ async fn run_scraper(lat1: f64, lat2: f64, long1: f64, long2: f64) {
 
 fn main() {
     println!("Start the scraping");
-    let lat1 = get_input("Enter latitude1: ");
+    /*let lat1 = get_input("Enter latitude1: ");
     let long1 = get_input("Enter longitude1: ");
     let lat2 = get_input("Enter latitude2: ");
     let long2 = get_input("Enter longitude2: ");
@@ -172,16 +172,21 @@ fn main() {
     let lat1: f64 = lat1.trim().parse().expect("Invalid input for latitude1");
     let long1: f64 = long1.trim().parse().expect("Invalid input for longitude1");
     let lat2: f64 = lat2.trim().parse().expect("Invalid input for latitude2");
-    let long2: f64 = long2.trim().parse().expect("Invalid input for longitude2");
+    let long2: f64 = long2.trim().parse().expect("Invalid input for longitude2");*/
 
     
-    /*let lat1: f64 = 43.947613;
+    let lat1: f64 = 43.947613;
     let lat2: f64 = 43.8520324685;
 
     let long1: f64 = 12.5242224779;
-    let long2: f64 = 12.412739371;*/
+    let long2: f64 = 12.412739371;
 
-    match use_json("HTML/extracted_data.json"){
+    let mydata: Result<Value, Box<dyn std::error::Error>> = use_json("HTML/extracted_data.json");
+
+    // match use_json("HTML/extracted_data.json"){
+
+
+    match &mydata{
 
         Ok(parsed_json)=>{
             println!("Parsed JSON: \n{}", serde_json::to_string_pretty(&parsed_json).unwrap());
@@ -198,6 +203,7 @@ fn main() {
     // mydata : Resultserde<()> = use_json("HTML/extracted_data.json");
 
 
+    
 
     let rt = tokio::runtime::Runtime::new().unwrap();
     rt.block_on(async {
