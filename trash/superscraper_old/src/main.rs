@@ -47,8 +47,8 @@ async fn fetch_html(url: &str) -> Result<String, Error> {
    // let body = response.text().await?;
     let body= response.bytes().await?;
   //  println!("Response Body {}",  body);
-   // println!("Response Status: {}", status);
-   // println!("Response Headers:\n{:#?}", headers);
+    println!("Response Status: {}", status);
+    println!("Response Headers:\n{:#?}", headers);
 
    
     let mut gz = GzDecoder::new(&body[..]);
@@ -127,54 +127,62 @@ fn use_json(path: &str) -> Result<Value, Box<dyn std::error::Error + Send + Sync
 
 
 
-async fn run_scraper(lat1: f64, lat2: f64, long1: f64, long2: f64, app_state: web::Data<AppState>) {
+async fn run_scraper(lat1: f64, lat2: f64, long1: f64, long2: f64, data: web::Data<AppState>) {
     loop {
         let url = create_airbnb_url(lat1, lat2, long1, long2);
         println!("URL created: {}", url);
 
+    
+
+        
+
+
         match fetch_html(&url).await {
             Ok(html) => {
+
+
                 let data = extract_data(&html);
                 if let Err(e) = save_html(&data, "HTML", "test20240608.html") {
                     eprintln!("Error saving HTML: {}", e);
                 } else {
                     println!("HTML saved successfully.");
                 }
+            
+              
 
-                if let Some(json_content) = extract_json(&html) {
-                    if let Err(e) = save_html(&json_content, "HTML", "extracted_data.json") {
+
+                if let Some(json_content) = extract_json(&html){
+                    if let Err(e) = save_html(&json_content, "HTML", "extracted_data.json"){
                         eprintln!("Error saving JSON: {}", e);
-                    } else {
-                        println!("JSON saved successfully.");
-
-                        match use_json("HTML/extracted_data.json") {
-                            Ok(parsed_json) => {
-                                let mut listings_lock = app_state.listings.lock().unwrap();
-                                *listings_lock = extract_listings(&parsed_json);
-                                println!("Extracted listings successfully.");
-                            }
-                            Err(e) => {
-                                eprintln!("Error parsing JSON: {}", e);
-                            }
+                        }else{
+                            println!("JSON saved successfully.");
                         }
-                    }
-                } else {
+                }else {
                     println!("No JSON content found.");
                 }
+
+
+
+                /*let contextual_content = extract_contextual_content(&html);
+
+                println!("this is the contextual {}", contextual_content);
+                if let Err(e) = save_html(&contextual_content, "HTML", "contextual_content.html") {
+                    eprintln!("Error saving HTML: {}", e);
+                } else {
+                    println!("HTML saved successfully.");
+                }*/
             }
             Err(e) => eprintln!("Error fetching HTML: {}", e),
         }
 
-        sleep(Duration::from_secs(1800)).await;
+      //  sleep(Duration::from_secs(1800)).await;
     }
 }
 
 
 
 
-
 fn extract_listings(json: &Value) -> Result<Vec<Value>, Box<dyn std::error::Error + Send + Sync>> {
-    println!{"extracting_listing"};
     let listings_array = json["niobeMinimalClientData"][0][1]["data"]["presentation"]["staysSearch"]["results"]["searchResults"]
         .as_array()
         .ok_or("Failed to find listings")?
